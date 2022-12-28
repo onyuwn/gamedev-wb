@@ -6,10 +6,12 @@ public class PlayerMovement : MonoBehaviour
 {
     public float speed = 10.0f;
     public Transform playerMesh;
+    public Transform lookDir;
     public Animator anim;
 
-    private float translation;
-    private float straffe;
+    private float translationX, translationZ;
+    private float straffeX, straffeZ;
+    private Quaternion _lookRotation;
     void Start()
     {
         
@@ -18,14 +20,18 @@ public class PlayerMovement : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        translation = Input.GetAxis("Vertical") * speed * Time.deltaTime;
-        straffe = Input.GetAxis("Horizontal") * speed * Time.deltaTime;
-        transform.Translate(translation, 0, -straffe);
-        playerMesh.rotation = Quaternion.LookRotation(new Vector3(translation, 0, -straffe));
+        translationX = Input.GetAxis("Vertical") * speed * Mathf.Sin(Mathf.Deg2Rad * _lookRotation.eulerAngles.y);
+        translationZ = Input.GetAxis("Vertical") * speed * Mathf.Cos(Mathf.Deg2Rad * _lookRotation.eulerAngles.y);
+        straffeX = Input.GetAxis("Horizontal") * speed * Mathf.Cos(Mathf.Deg2Rad * _lookRotation.eulerAngles.y);
+        straffeZ = Input.GetAxis("Horizontal") * speed * Mathf.Sin(Mathf.Deg2Rad * _lookRotation.eulerAngles.y);
+        _lookRotation = lookDir.rotation;
+        // Debug.Log($"rot: {_lookRotation.eulerAngles.y} translation: {translation} straffe: {straffe}");
 
-        if(translation != 0 || straffe != 0)
+        if(translationX != 0 || straffeX != 0)
         {
+            playerMesh.rotation = Quaternion.Euler(0, _lookRotation.eulerAngles.y, 0);
             anim.SetBool("walking", true);
+            transform.Translate((translationX + straffeX) * Time.deltaTime, 0, (translationZ - straffeZ) * Time.deltaTime);
         }
         else
         {
