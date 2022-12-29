@@ -9,6 +9,10 @@ public class PlayerMovement : MonoBehaviour
     public Transform lookDir;
     public Animator anim;
 
+    private bool isSneaking = false;
+    private int jumpCount = 0;
+    private bool canJump = false;
+    private bool isGrounded = false;
     private float translationX, translationZ;
     private float straffeX, straffeZ;
     private Quaternion _lookRotation;
@@ -16,10 +20,47 @@ public class PlayerMovement : MonoBehaviour
     {
         
     }
+    private void FixedUpdate()
+    {
+        RaycastHit groundHit;
+        Debug.DrawRay(transform.position, -transform.up * .25f, Color.green);
+        if (Physics.Raycast(transform.position, -transform.up, out groundHit, .25f))
+        {
+            Debug.Log("Hit");
+            if (groundHit.transform.gameObject.tag == "ground")
+            {
+                jumpCount = 0;
+                Debug.Log("Grounded");
+                isGrounded = true;
+            }
+            else
+            {
+                isGrounded = false;
+            }
 
+        }
+        else
+        {
+            isGrounded = false;
+        }
+    }
     // Update is called once per frame
     void Update()
     {
+        if (Input.GetKeyDown(KeyCode.LeftControl))
+        {
+            speed = speed/2;
+            isSneaking = true;
+        }
+        if (Input.GetKeyUp(KeyCode.Space))
+        {
+            if(jumpCount < 1)
+            {
+                GetComponent<Rigidbody>().AddForce(transform.up * 300);
+                jumpCount++;
+            }
+
+        }
         translationX = Input.GetAxis("Vertical") * speed * Mathf.Sin(Mathf.Deg2Rad * _lookRotation.eulerAngles.y);
         translationZ = Input.GetAxis("Vertical") * speed * Mathf.Cos(Mathf.Deg2Rad * _lookRotation.eulerAngles.y);
         straffeX = Input.GetAxis("Horizontal") * speed * Mathf.Cos(Mathf.Deg2Rad * _lookRotation.eulerAngles.y);
